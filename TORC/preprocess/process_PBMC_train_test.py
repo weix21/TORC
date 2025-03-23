@@ -5,19 +5,14 @@ import pandas as pd
 import math
 import numpy as np
 
-from preprocess import load_PBMC_data
+
+PredCelltype_COLUMN = "pred_celltype"
+Celltype_COLUMN = "cell.type"
 
 
-def process_all(result_dir, args,
-        celltype_gran=1):
-    ''' Process individual data of PBMC batch2
-    @data_dir: where PBMC batch2 data stroes
-    @result_dir: where to store PCA/tSNE/UMAP result
-    @input1/input2: can be batch1_indID/batch2_indID
-    @celltype_gran: granularity of cell types, 0: major cell types, 1:sub-celltypes
-        According to the dataset, the give cell types are sub-cell types
+def _process_initial(args):
+    ''' Load Reference data and target data
     '''
-    ## split input1
     if args.train is None:
         train_adata = anndata.read_h5ad(args.ref_dir)
     else:
@@ -38,37 +33,21 @@ def process_all(result_dir, args,
     print("Train anndata: \n", train_adata)
     print("Test anndata: \n", test_adata)
 
-    ## curate given sub-cell types to major cell types
-    train_adata = load_PBMC_data.curate_PBMC_demulx_celltypes(train_adata, celltype_gran)
-    print("train_adata: \n", set(train_adata.obs["cell.type"]))
-    test_adata = load_PBMC_data.curate_PBMC_demulx_celltypes(test_adata, celltype_gran)
-    print("test_adata: \n", set(test_adata.obs["cell.type"]))
     return train_adata, test_adata
 
 
 
 
-def process_sample(result_dir, args,
-        celltype_gran=1):
-    ''' Process individual data of PBMC batch2
+def _process_reconstruct(args):
+    ''' Load Reference data and target data
     @data_dir: where PBMC batch2 data stroes
     @result_dir: where to store PCA/tSNE/UMAP result
-    @input1/input2: can be batch1_indID/batch2_indID
-    @celltype_gran: granularity of cell types, 0: major cell types, 1:sub-celltypes
-        According to the dataset, the give cell types are sub-cell types
     '''
 
     RANDOM_SEED = args.rseed
     random.seed(RANDOM_SEED)
     sample_cells = []
     metadata = pd.read_csv(args.NMLP_dir,index_col=0)
-
-    if 'scNym' in metadata.columns:
-        metadata['firstround_pred_celltype'] = metadata['scNym']
-    elif 'scanvi' in metadata.columns:
-        metadata['firstround_pred_celltype'] = metadata['scanvi']
-    elif 'predictions' in metadata.columns:
-        metadata['firstround_pred_celltype'] = metadata['predictions']
 
     if args.train is None:
         all_adata = anndata.read_h5ad(args.ref_dir)
@@ -85,31 +64,23 @@ def process_sample(result_dir, args,
         test_adata = adata[ind_cells]
         del(adata)
 
-    test_adata = load_PBMC_data.curate_PBMC_demulx_celltypes(test_adata, celltype_gran=1)
-    all_adata = load_PBMC_data.curate_PBMC_demulx_celltypes(all_adata, celltype_gran=1)
-
     if (args.expand_ref == "Expand_v1"):
         print("Expand reference")
         entropy_data = pd.read_csv(args.Entropy_dir,index_col=0)
-        if 'scNym' in entropy_data.columns:
-            entropy_data['firstround_pred_celltype'] = entropy_data['scNym']
-        elif 'scanvi' in entropy_data.columns:
-            entropy_data['firstround_pred_celltype'] = entropy_data['scanvi']
-        elif 'predictions' in entropy_data.columns:
-            entropy_data['firstround_pred_celltype'] = entropy_data['predictions']
+
         low_entropy_cells = entropy_data.loc[entropy_data['entropy_status'] == 'low']["barcode"].tolist()
         high_entropy_cells = entropy_data.loc[entropy_data['entropy_status'] == 'high']["barcode"].tolist()
         test_ref_adata = test_adata[low_entropy_cells]
-        test_ref_adata.obs["cell.type"] = entropy_data.loc[entropy_data['entropy_status'] == 'low']["firstround_pred_celltype"].tolist()
+        test_ref_adata.obs[Celltype_COLUMN] = entropy_data.loc[entropy_data['entropy_status'] == 'low'][PredCelltype_COLUMN].tolist()
 
         if test_ref_adata.n_obs > all_adata.n_obs:
             test_ref_adata_number = all_adata.n_obs
-            test_ref_proptionDict = dict(pd.Series(test_ref_adata.obs["cell.type"]).value_counts(normalize=True))
+            test_ref_proptionDict = dict(pd.Series(test_ref_adata.obs[Celltype_COLUMN]).value_counts(normalize=True))
             test_ref_sample_cells = []
             for celltype in sorted(set(test_ref_proptionDict)):
                 cells=[]
                 cell_n = math.ceil(test_ref_proptionDict[celltype]*test_ref_adata_number)
-                celltype_df = test_ref_adata.obs[test_ref_adata.obs["cell.type"] == celltype]
+                celltype_df = test_ref_adata.obs[test_ref_adata.obs[Celltype_COLUMN] == celltype]
                 if cell_n < 50:
                     cell_n = 50
                 print(celltype)
@@ -133,15 +104,19 @@ def process_sample(result_dir, args,
                 batch_key="dataset_batch",batch_categories=["train","test_ref"]) #inner join
         print(all_adata)
 
-    common_celltypes = args.common_ct
-    common_celltypes = common_celltypes.split(',')
+
+
+
+
+    common_celltypes = set(all_adata.obs[Celltype_COLUMN])
+
     if(args.sample_method == "Prop"):
         print("Based on Celltype Proportion")
-        if(set(pd.Series(metadata["firstround_pred_celltype"])) == set(common_celltypes)):
-            proptionDict = dict(pd.Series(metadata["firstround_pred_celltype"]).value_counts(normalize=True))
+        if(set(pd.Series(metadata[PredCelltype_COLUMN])) == set(common_celltypes)):
+            proptionDict = dict(pd.Series(metadata[PredCelltype_COLUMN]).value_counts(normalize=True))
         else:
             print("Missing celltypes")
-            proptionDict = dict(pd.Series(metadata["firstround_pred_celltype"]).value_counts()+1)
+            proptionDict = dict(pd.Series(metadata[PredCelltype_COLUMN]).value_counts()+1)
             for i in common_celltypes:
                 if(i not in proptionDict):
                     proptionDict[i]=1
@@ -162,20 +137,6 @@ def process_sample(result_dir, args,
             for i in set(common_celltypes):
                 if(i not in proptionDict):
                     proptionDict[i]=0.0001
-            propsum = sum([proptionDict[i] for i in proptionDict])
-            for x in proptionDict:
-                proptionDict[x] = proptionDict[x]/propsum
-
-    if(args.sample_method == "GT"):
-        print("Based on Ground Truth")
-        if(set(pd.Series(metadata["cell.type"])) == set(common_celltypes)):
-            proptionDict = dict(pd.Series(metadata["cell.type"]).value_counts(normalize=True))
-        else:
-            print("Missing celltypes")
-            proptionDict = dict(pd.Series(metadata["cell.type"]).value_counts()+1)
-            for i in common_celltypes:
-                if(i not in proptionDict):
-                    proptionDict[i]=1
             propsum = sum([proptionDict[i] for i in proptionDict])
             for x in proptionDict:
                 proptionDict[x] = proptionDict[x]/propsum
@@ -207,9 +168,5 @@ def process_sample(result_dir, args,
     train_adata.obs_names_make_unique(join="-")
     train_adata.obs["barcode"] = train_adata.obs_names
 
-
-    print("train_adata: \n", set(train_adata.obs["cell.type"]))
-    print("test_adata: \n", set(test_adata.obs["cell.type"]))
-    print(proptionDict)
-    print(dict(pd.Series(train_adata.obs["cell.type"]).value_counts(normalize=True)))
     return train_adata, test_adata
+
