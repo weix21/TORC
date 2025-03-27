@@ -13,7 +13,7 @@ Celltype_COLUMN = "cell.type"
 def _process_initial(args):
     ''' Load Reference data and target data
     '''
-    if args.train is None:
+    if args.train_sample is None:
         train_adata = anndata.read_h5ad(args.ref_dir)
     else:
         print("Sepcify samples are used")
@@ -21,7 +21,7 @@ def _process_initial(args):
         ind_cells = adata.obs[adata.obs["ind"].isin(args.train.split(','))].index
         train_adata = adata[ind_cells]
 
-    if args.test is None:
+    if args.test_sample is None:
         test_adata  = anndata.read_h5ad(args.data_dir)
     else:
         print("Sepcify samples are used")
@@ -39,9 +39,7 @@ def _process_initial(args):
 
 
 def _process_reconstruct(args):
-    ''' Load Reference data and target data
-    @data_dir: where PBMC batch2 data stroes
-    @result_dir: where to store PCA/tSNE/UMAP result
+    ''' Load Reference data and target data, and perform reference construction
     '''
 
     RANDOM_SEED = args.rseed
@@ -49,14 +47,14 @@ def _process_reconstruct(args):
     sample_cells = []
     metadata = pd.read_csv(args.NMLP_dir,index_col=0)
 
-    if args.train is None:
+    if args.train_sample is None:
         all_adata = anndata.read_h5ad(args.ref_dir)
     else:
         adata  = anndata.read_h5ad(args.ref_dir)
         ind_cells = adata.obs[adata.obs["ind"].isin(args.train.split(','))].index
         all_adata = adata[ind_cells]
 
-    if args.test is None:
+    if args.test_sample is None:
         test_adata  = anndata.read_h5ad(args.data_dir)
     else:
         adata  = anndata.read_h5ad(args.data_dir)

@@ -22,7 +22,8 @@ A = TypeVar('anndata')  ## generic for anndata
 ENC = TypeVar('OneHotEncoder')
 
 from models.MLP import MLP
-from preprocess.process_PBMC_train_test import *
+from preprocess.process_data_train_test import _process_initial
+from preprocess.process_data_train_test import _process_reconstruct
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +44,10 @@ ENTROPY_QUANTILE = 0.4  ## how many target cells could be used for expanding ref
 def _load_adata(args=None):
     train_adata, test_adata = None, None
     ## === TORC 
-    if args.data_source == "TORC_initial":
+    if args.torc_step == "TORC_initial":
         train_adata, test_adata = \
             _process_initial(args)
-    if args.data_source == "TORC_reconstruct":
+    if args.torc_step == "TORC_reconstruct":
         train_adata, test_adata = \
             _process_reconstruct(args)
 
@@ -64,19 +65,20 @@ def _process_loaded_data(train_adata, test_adata, result_dir,
 
 
     ## Process data
-    train_adata = _process_adata(train_adata)
-    test_adata = _process_adata(test_adata)
+    train_adata = _process_adata(train_adata, process_type='train')
+    test_adata = _process_adata(test_adata, process_type='test')
 
     ## feature selection
     train_adata = _select_feature(train_adata, fs_method = args.select_method, num_features = args.n_features)
     features = set(train_adata.var_names.tolist()).intersection(set(test_adata.var_names.tolist()))
+    features = list(features)
     train_adata = train_adata[:, features]
     test_adata = test_adata[:, features]
 
-    # scale and analze, no need to scale for calculating distance
+    # scale data
     if args.scale:
-        train_adata = _scale_data(train_adata, process_type='train')
-        test_adata = _scale_data(test_adata, process_type='test')
+        train_adata = _scale_data(train_adata)
+        test_adata = _scale_data(test_adata)
 
     return train_adata, test_adata
 

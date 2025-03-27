@@ -17,6 +17,8 @@ if __name__ == "__main__":
     parser.add_argument('--NMLP_dir', help="Initial MLP Result Dir")
     parser.add_argument('--data_dir', help="Target data Dir")
     parser.add_argument('--ref_dir', help="Ref data Dir")
+    parser.add_argument('--train_sample', help="Train sample ID")
+    parser.add_argument('--test_sample', help="Test sample ID")
     parser.add_argument('--sample_method', help="Define Sampling method",
                         choices=['Prop', 'Prob'])
     parser.add_argument('--rseed', help="Define the random seed used", default=1234, type=int)
@@ -29,7 +31,7 @@ if __name__ == "__main__":
     result_dir = args.res_dir
     os.makedirs(result_dir, exist_ok=True)
     
-    train_adata, test_adata = method_utils._load_PBMC_adata(
+    train_adata, test_adata = method_utils._load_adata(
             args=args)
 
     train_adata, test_adata = method_utils._process_loaded_data(
