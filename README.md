@@ -60,6 +60,10 @@ The TORC_pipeline script provides several configurable command-line arguments to
   - Directory containing the reference dataset.
 - '--data_dir' (str, required)
   - Directory containing the target dataset.
+- '-train_sample' (str, optional)
+  - Train sample ID for downsampling
+- '-test_sample' (str, optional)
+  - Target sample ID for downsampling
 - '--NMLP_dir' (str, optional)
   - Directory containing Initial MLP results.
 - '--Entropy_dir' (str, optional)
