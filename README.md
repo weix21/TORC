@@ -33,13 +33,13 @@ The example requires the following:
 
 ### To get the initial predicted labels:
 ```
-python -m pipelines.PBMC_pipeline --torc_step TORC_initial --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR
+python -m pipelines.PBMC_pipeline --torc_step TORC_initial --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR --scale
 
 ```
 
 ### Based on the initial predicted labels, reconsturct the reference and update labels:
 ```
-python -m pipelines.TORC_pipeline --torc_step TORC_reconstruct --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR --NMLP_dir $NMLP_DIR --sample_method $smethod --expand_ref $do_expand --Entropy_dir $EP_DIR
+python -m pipelines.TORC_pipeline --torc_step TORC_reconstruct --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR --NMLP_dir $NMLP_DIR --sample_method $smethod --expand_ref $do_expand --Entropy_dir $EP_DIR --scale
 ```
 
 ### Parameters
@@ -76,7 +76,9 @@ The TORC_pipeline script provides several configurable command-line arguments to
 - '--sample_size' (int, optional, default: 1000)
   - Approximate sample size for analysis.
 - '--rseed' (int, optional, default: 1234)
-  - Specifies the random seed for reproducibility.   
+  - Specifies the random seed for reproducibility.
+- '--scale' (flag argument)
+  - Enables data scaling if specified.   
 
 
 
