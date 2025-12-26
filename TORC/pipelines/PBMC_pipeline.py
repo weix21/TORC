@@ -7,9 +7,9 @@ if __name__ == "__main__":
     ## parse arguments
     parser = argparse.ArgumentParser(description="Celltyping pipeline.")
     parser.add_argument('--torc_step', help="Which step of TORC",
-        choices=["TORC_initial","TORC_reconstruct"])
+        choices=["TORC_initial","TORC_reconstruct"], required=True)
     parser.add_argument('--select_method', help="Feature selection method, Seurat, F-test or None",
-            choices=['noFS', 'F-test', 'Seurat'])
+            choices=['noFS', 'F-test', 'Seurat'], required=True)
     parser.add_argument('--n_features', help="Number of features selected",
             default=1000, type=int)
     parser.add_argument('--res_dir', help="Result Dir",
@@ -25,7 +25,9 @@ if __name__ == "__main__":
     parser.add_argument('--sample_size',help="Roughly define the sample size for analysis", default=1000, type=int)
     parser.add_argument('--expand_ref', help="Define if expanding the reference")
     parser.add_argument('--Entropy_dir', help="Entropy Status Dir")
+    parser.add_argument('--scale', help='Apply scaling to both reference and target datasets', action='store_true')
 
+    
     args = parser.parse_args()
 
     result_dir = args.res_dir
