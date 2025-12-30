@@ -53,23 +53,25 @@ The TORC_pipeline script provides several configurable command-line arguments to
   - Defines the feature selection method.
   - Choices: "noFS" (no feature selection), "F-test", "Seurat".
 - '--n_features' (int, optional, default: 1000)
-  - Number of features selected..
+  - Number of features selected.
 - '--res_dir'(str, required)
   - Directory where results will be stored.
 - '--ref_dir' (str, required)
   - Directory containing the reference dataset.
 - '--data_dir' (str, required)
   - Directory containing the target dataset.
-- '-train_sample' (str, optional)
+- '--train_sample' (str, optional)
   - Train sample ID for downsampling
-- '-test_sample' (str, optional)
+  - Comma-separated list
+- '--test_sample' (str, optional)
   - Target sample ID for downsampling
+  - Comma-separated list
 - '--NMLP_dir' (str, optional)
-  - Directory containing Initial MLP results.
+  - Directory containing TORC_initial results.
 - '--Entropy_dir' (str, optional)
   - Directory containing entropy status results.
-- '--expand_ref' (bool, optional)
-  - Specifies whether to expand the reference dataset.
+- '--expand_ref' (str, optional)
+  - In current version, use 'Expand_v1' to Specify whether to expand the reference dataset.
 - '--sample_method', help="Define Sampling method")
   - Defines the sampling method for reference reconsturction to be used.
   - Choices: "Prop" (proportion-based sampling), "Prob" (probability-based sampling)
