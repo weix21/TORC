@@ -33,7 +33,7 @@ The example requires the following:
 
 ### To get the initial predicted labels:
 ```
-python -m pipelines.PBMC_pipeline --torc_step TORC_initial --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR --scale
+python -m pipelines.TORC_pipeline --torc_step TORC_initial --select_method $fs_method --res_dir $RES_DIR --data_dir $DATA_DIR --ref_dir $REF_DIR --scale
 
 ```
 
